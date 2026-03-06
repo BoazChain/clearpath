@@ -25,7 +25,7 @@ const AFFIRMATIONS = [
   "Your strength lives precisely in the spaces between craving and choice.",
   "This discomfort is temporary. The person you're becoming is permanent.",
   "You are not what happened to you. You are what you choose to do next.",
-  "Recovery is not a straight line — it's a spiral upward.",
+  "Recovery is not a straight line, it's a spiral upward.",
   "The bravest thing you did today was wake up and try again.",
 ];
 
@@ -44,7 +44,7 @@ const INITIAL_CRAVINGS = [
 ];
 
 const INITIAL_JOURNAL = [
-  {id:1,text:"Woke up feeling grateful today. The morning light felt different — more present, somehow.",ts:Date.now()-86400000,mood:4},
+  {id:1,text:"Woke up feeling grateful today. The morning light felt different, more present, somehow.",ts:Date.now()-86400000,mood:4},
 ];
 
 const CSS = `
