@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { streamAI, askAI, buildUserContext, insightSystemPrompt, companionSystemPrompt } from "./useAI.js";
 
 const MILESTONES = [1,3,7,14,30,60,90,180,365];
 const MILESTONE_NAMES = {1:"First Day",3:"Three Days",7:"One Week",14:"Two Weeks",30:"One Month",60:"Two Months",90:"Three Months",180:"Half a Year",365:"One Full Year"};
@@ -25,16 +26,16 @@ const AFFIRMATIONS = [
   "Your strength lives precisely in the spaces between craving and choice.",
   "This discomfort is temporary. The person you're becoming is permanent.",
   "You are not what happened to you. You are what you choose to do next.",
-  "Recovery is not a straight line, it's a spiral upward.",
+  "Recovery is not a straight line. It is a spiral upward.",
   "The bravest thing you did today was wake up and try again.",
 ];
 
 const TRIGGERS = ["Stress","Social pressure","Loneliness","Boredom","Anxiety","Celebration","Anger","Fatigue","Habit","Other"];
 
 const INITIAL_MESSAGES = [
-  {id:1,from:"Mom",initials:"M",color:"#c9a84c",text:"I think about your courage every single morning. You are doing something extraordinary and I see it.",hasAudio:true,duration:"0:38",audioUrl:null,ts:Date.now()-3600000*2},
-  {id:2,from:"Alex",initials:"A",color:"#6b8cba",text:"Hey. Just wanted to say I'm proud of you. No agenda, just that. You've got this completely.",hasAudio:true,duration:"0:22",audioUrl:null,ts:Date.now()-3600000*18},
-  {id:3,from:"Jordan",initials:"J",color:"#7a9a6a",text:"Every sober morning is a small miracle. I'm honoured to witness yours.",hasAudio:false,duration:null,audioUrl:null,ts:Date.now()-86400000*2},
+  {id:1,from:"Mom",initials:"M",color:"#c9a84c",text:"I think about your courage every single morning. You are doing something extraordinary and I see it.",hasAudio:true,duration:"0:38",audioUrl:null,ts:Date.now()-3600000*2,isFixed:true},
+  {id:2,from:"Alex",initials:"A",color:"#6b8cba",text:"Hey. Just wanted to say I'm proud of you. No agenda, just that. You've got this completely.",hasAudio:true,duration:"0:22",audioUrl:null,ts:Date.now()-3600000*18,isFixed:true},
+  {id:3,from:"Jordan",initials:"J",color:"#7a9a6a",text:"Every sober morning is a small miracle. I'm honoured to witness yours.",hasAudio:false,duration:null,audioUrl:null,ts:Date.now()-86400000*2,isFixed:true},
 ];
 
 const INITIAL_CRAVINGS = [
@@ -44,7 +45,7 @@ const INITIAL_CRAVINGS = [
 ];
 
 const INITIAL_JOURNAL = [
-  {id:1,text:"Woke up feeling grateful today. The morning light felt different, more present, somehow.",ts:Date.now()-86400000,mood:4},
+  {id:1,text:"Woke up feeling grateful today. The morning light felt different, more present somehow.",ts:Date.now()-86400000,mood:4},
 ];
 
 const CSS = `
@@ -78,6 +79,7 @@ const CSS = `
   @keyframes confetti{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
   @keyframes glowPulse{0%,100%{box-shadow:0 0 20px rgba(201,168,76,0.3)}50%{box-shadow:0 0 40px rgba(201,168,76,0.7)}}
   @keyframes recordPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,80,74,0.5)}50%{box-shadow:0 0 0 16px rgba(201,80,74,0)}}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
   .anim-fadeUp{animation:fadeUp 0.5s ease forwards;}
   .anim-scaleIn{animation:scaleIn 0.4s ease forwards;}
   .btn-press:active{transform:scale(0.96);}
@@ -480,7 +482,7 @@ function SupporterPortal({onBack,onSend,stats}){
 
         {}
         <div style={{marginBottom:32}}>
-          <label style={{fontSize:11,color:"var(--gold)",textTransform:"uppercase",letterSpacing:"0.15em",display:"block",marginBottom:12}}>Voice memo <span style={{color:"var(--cream3)",textTransform:"none",letterSpacing:0,fontSize:11}}>(optional — most powerful)</span></label>
+          <label style={{fontSize:11,color:"var(--gold)",textTransform:"uppercase",letterSpacing:"0.15em",display:"block",marginBottom:12}}>Voice memo <span style={{color:"var(--cream3)",textTransform:"none",letterSpacing:0,fontSize:11}}>(optional, most powerful)</span></label>
           {!audioUrl ? (
             <button onClick={recording?stopRec:startRec} className="btn-press" style={{
               width:"100%",background:recording?"rgba(201,80,74,0.1)":"var(--card)",
@@ -524,7 +526,7 @@ function SupporterPortal({onBack,onSend,stats}){
   );
 }
 
-function TrackerApp({onBack,messages,onPublishProfile,onClearMessages}){
+function TrackerApp({onBack,messages,onPublishProfile,onClearMessages,onDeleteMessage}){
   const [startTs] = useState(()=>Date.now()-23*86400000);
   const [days, setDays] = useState(()=>daysSince(Date.now()-23*86400000));
   const [tab,setTab]=useState("today");
@@ -542,6 +544,7 @@ function TrackerApp({onBack,messages,onPublishProfile,onClearMessages}){
   const [newJournal,setNewJournal]=useState("");
   const [playingId,setPlayingId]=useState(null);
   const [prevDays,setPrevDays]=useState(days);
+  const [showCompanion,setShowCompanion]=useState(false);
 
   useEffect(()=>{
     onPublishProfile({days, cravingsOvercome:cravings.filter(c=>c.overcome).length, supporters:3});
@@ -579,14 +582,21 @@ function TrackerApp({onBack,messages,onPublishProfile,onClearMessages}){
     {id:"cravings",icon:"🌊",label:"Cravings"},
     {id:"journal",icon:"📖",label:"Journal"},
     {id:"messages",icon:"💛",label:"Messages"},
+    {id:"insights",icon:"✨",label:"Insights"},
   ];
 
   return (
     <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",position:"relative",zIndex:1}}>
       {showBreathing&&<BreathingModal onClose={()=>setShowBreathing(false)}/>}
       {showMilestone&&<MilestoneToast days={showMilestone} onClose={()=>setShowMilestone(null)}/>}
-
-      {}
+      {showCompanion&&(
+        <CompanionModal
+          onClose={()=>setShowCompanion(false)}
+          days={days} cravings={cravings} journal={journal}
+          messages={messages} mood={todayMood}
+          gratitude={gratitude} intention={intention}
+        />
+      )}
       <div style={{background:"linear-gradient(180deg,var(--bg2),var(--bg))",padding:"48px 24px 0",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-60,right:-60,width:240,height:240,borderRadius:"50%",background:"radial-gradient(circle,rgba(201,168,76,0.06),transparent)"}}/>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
@@ -654,7 +664,7 @@ function TrackerApp({onBack,messages,onPublishProfile,onClearMessages}){
               <div style={{display:"flex",gap:6}}>
                 {MOODS.map((m,i)=><MoodDot key={i} m={m} selected={todayMood===i} onClick={()=>setTodayMood(i)}/>)}
               </div>
-              {todayMood!==null&&<p style={{color:"var(--cream3)",fontSize:13,marginTop:12,fontStyle:"italic"}}>Feeling {MOODS[todayMood].label.toLowerCase()} today — that's noted and that's valid.</p>}
+              {todayMood!==null&&<p style={{color:"var(--cream3)",fontSize:13,marginTop:12,fontStyle:"italic"}}>Feeling {MOODS[todayMood].label.toLowerCase()} today. That is noted and that is valid.</p>}
             </Card>
 
             {}
@@ -849,6 +859,21 @@ function TrackerApp({onBack,messages,onPublishProfile,onClearMessages}){
                     <div style={{color:"var(--cream3)",fontSize:11,marginTop:2}}>{fmtDate(m.ts)} · {fmtTime(m.ts)}{m.hasAudio?` · 🎙 ${m.duration}`:""}</div>
                   </div>
                   {m.ts>Date.now()-86400000&&<span style={{background:"rgba(201,168,76,0.15)",color:"var(--gold)",fontSize:10,padding:"3px 8px",borderRadius:"50px",border:"1px solid var(--border)"}}>New</span>}
+                  {onDeleteMessage&&!m.isFixed&&(
+                    <button
+                      onClick={()=>onDeleteMessage(m.id)}
+                      title="Remove message"
+                      style={{
+                        background:"none",border:"1px solid rgba(201,80,74,0.25)",
+                        borderRadius:"50%",width:28,height:28,cursor:"pointer",
+                        color:"rgba(201,80,74,0.6)",fontSize:14,flexShrink:0,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        transition:"all 0.15s",lineHeight:1,
+                      }}
+                      onMouseEnter={e=>{e.currentTarget.style.background="rgba(201,80,74,0.12)";e.currentTarget.style.color="var(--red)";e.currentTarget.style.borderColor="var(--red)";}}
+                      onMouseLeave={e=>{e.currentTarget.style.background="none";e.currentTarget.style.color="rgba(201,80,74,0.6)";e.currentTarget.style.borderColor="rgba(201,80,74,0.25)";}}
+                    >✕</button>
+                  )}
                 </div>
                 {m.isNudge?(
                   <div style={{textAlign:"center",padding:"12px 0",fontSize:32}}>{m.text}</div>
@@ -883,7 +908,228 @@ function TrackerApp({onBack,messages,onPublishProfile,onClearMessages}){
   );
 }
 
-const STORAGE_KEY_MSGS    = "clearpath:messages:CLRP-7423";
+function InsightsTab({ days, cravings, journal, messages, mood, gratitude, intention }) {
+  const CACHE_KEY = "clearpath:insight:" + new Date().toDateString();
+  const [insight, setInsight] = useState(() => localStorage.getItem(CACHE_KEY) || "");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function generate() {
+    setLoading(true); setError("");
+    try {
+      const ctx = buildUserContext({ days, cravings, journal, messages, mood, gratitude, intention });
+      const result = await askAI(insightSystemPrompt(ctx), "Generate my daily insight for today.");
+      localStorage.setItem(CACHE_KEY, result);
+      setInsight(result);
+    } catch(e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { if (!insight) generate(); }, []);
+
+  const paragraphs = insight.split("\n\n").filter(Boolean);
+
+  return (
+    <div style={{ animation: "fadeUp 0.4s ease" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 24, fontWeight: 400, color: "var(--cream)" }}>Daily Insight</h2>
+          <p style={{ color: "var(--cream3)", fontSize: 13, marginTop: 2 }}>{new Date().toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })}</p>
+        </div>
+        <button onClick={generate} disabled={loading} className="btn-press" style={{
+          background: "var(--gold-dim)", border: "none", borderRadius: "50px",
+          padding: "10px 18px", color: "var(--gold2)", cursor: loading ? "not-allowed" : "pointer", fontSize: 13
+        }}>{loading ? "..." : "↻ Refresh"}</button>
+      </div>
+
+      {error && (
+        <Card style={{ border: "1px solid rgba(201,80,74,0.3)", marginBottom: 16 }}>
+          <p style={{ color: "var(--red)", fontSize: 13 }}>⚠ {error}</p>
+          <p style={{ color: "var(--cream3)", fontSize: 12, marginTop: 6 }}>Check your VITE_OPENAI_KEY in .env</p>
+        </Card>
+      )}
+
+      {loading && !insight && (
+        <Card style={{ marginBottom: 14, border: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid var(--gold)", borderTopColor: "transparent", animation: "spin 0.8s linear infinite" }} />
+            <p style={{ color: "var(--cream3)", fontSize: 14, fontStyle: "italic" }}>Reading your journey and preparing your insight…</p>
+          </div>
+        </Card>
+      )}
+
+      {paragraphs.map((p, i) => (
+        <Card key={i} style={{
+          marginBottom: 12,
+          background: i === 0 ? "linear-gradient(135deg,var(--bg3),var(--card))" : "var(--card)",
+          border: i === 0 ? "1px solid var(--border)" : "1px solid var(--border2)",
+          animation: `fadeUp 0.4s ease ${i * 0.1}s both`
+        }}>
+          {i === 0 && <p style={{ color: "var(--gold)", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 12 }}>Today's reflection</p>}
+          <p style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, fontStyle: "italic", color: "var(--cream)", lineHeight: 1.8 }}>{p}</p>
+        </Card>
+      ))}
+
+      {insight && (
+        <Card style={{ marginTop: 8, background: "var(--bg3)", border: "1px solid var(--border2)" }}>
+          <p style={{ color: "var(--cream3)", fontSize: 12, lineHeight: 1.6 }}>
+            This insight is generated from your mood, cravings, journal, and supporter messages. It refreshes once per day and is stored only on your device.
+          </p>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function CompanionModal({ onClose, days, cravings, journal, messages, mood, gratitude, intention }) {
+  const [history, setHistory] = useState([
+    { role: "assistant", content: `I'm with you. ${days} days is real progress. What's on your mind today?` }
+  ]);
+  const [input, setInput] = useState("");
+  const [streaming, setStreaming] = useState(false);
+  const [error, setError] = useState("");
+  const bottomRef = useRef();
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [history]);
+
+  async function send() {
+    if (!input.trim() || streaming) return;
+    const userMsg = input.trim();
+    setInput("");
+    setError("");
+    const newHistory = [...history, { role: "user", content: userMsg }];
+    setHistory(newHistory);
+    setStreaming(true);
+
+    setHistory(h => [...h, { role: "assistant", content: "" }]);
+
+    try {
+      const ctx = buildUserContext({ days, cravings, journal, messages, mood, gratitude, intention });
+      const apiHistory = newHistory.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
+
+      await streamAI(
+        companionSystemPrompt(ctx),
+        userMsg,
+        apiHistory.slice(-10),
+        (partial) => setHistory(h => {
+          const updated = [...h];
+          updated[updated.length - 1] = { role: "assistant", content: partial };
+          return updated;
+        })
+      );
+    } catch(e) {
+      setError(e.message);
+      setHistory(h => h.slice(0, -1));
+    } finally {
+      setStreaming(false);
+    }
+  }
+
+  const STARTERS = ["How am I doing today?", "I'm feeling a craving right now.", "I need some motivation.", "What patterns do you see in my logs?"];
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 500, display: "flex", flexDirection: "column", background: "var(--bg)", animation: "fadeUp 0.3s ease" }}>
+      <div style={{ padding: "52px 20px 16px", borderBottom: "1px solid var(--border2)", display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,var(--green-dim),var(--gold-dim))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🌿</div>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 400, color: "var(--cream)" }}>ClearPath Companion</h2>
+          <p style={{ color: "var(--cream3)", fontSize: 12, marginTop: 2 }}>Knows your journey. Always here.</p>
+        </div>
+        <button onClick={onClose} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border2)", color: "var(--cream3)", borderRadius: "50%", width: 36, height: 36, cursor: "pointer", fontSize: 16 }}>✕</button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
+        {history.length === 1 && (
+          <div style={{ marginBottom: 8 }}>
+            <p style={{ color: "var(--cream3)", fontSize: 12, textAlign: "center", marginBottom: 12 }}>Or start with</p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
+              {STARTERS.map(s => (
+                <button key={s} onClick={() => { setInput(s); }} className="btn-press" style={{
+                  background: "var(--card)", border: "1px solid var(--border2)", borderRadius: "50px",
+                  padding: "8px 14px", color: "var(--cream3)", cursor: "pointer", fontSize: 12
+                }}>{s}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {history.map((m, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start", animation: "fadeUp 0.3s ease" }}>
+            {m.role === "assistant" && (
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--green-dim)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, flexShrink: 0, marginRight: 8, marginTop: 4 }}>🌿</div>
+            )}
+            <div style={{
+              maxWidth: "78%",
+              background: m.role === "user" ? "var(--gold-dim)" : "var(--card)",
+              border: `1px solid ${m.role === "user" ? "var(--gold)" : "var(--border2)"}`,
+              borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
+              padding: "12px 16px",
+            }}>
+              <p style={{
+                fontFamily: m.role === "assistant" ? "'Cormorant Garamond',serif" : "'DM Sans',sans-serif",
+                fontSize: m.role === "assistant" ? 16 : 14,
+                color: m.role === "user" ? "var(--gold2)" : "var(--cream)",
+                lineHeight: 1.7,
+                fontStyle: m.role === "assistant" ? "italic" : "normal",
+              }}>
+                {m.content}
+                {streaming && i === history.length - 1 && m.role === "assistant" && m.content === "" && (
+                  <span style={{ display: "inline-flex", gap: 3, marginLeft: 4 }}>
+                    {[0,1,2].map(d => <span key={d} style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--cream3)", display: "inline-block", animation: `pulse 1s ease ${d*0.2}s infinite` }}/>)}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        ))}
+        {error && <p style={{ color: "var(--red)", fontSize: 12, textAlign: "center" }}>⚠ {error}</p>}
+        <div ref={bottomRef} />
+      </div>
+
+      <div style={{ padding: "12px 16px 28px", borderTop: "1px solid var(--border2)", display: "flex", gap: 10 }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
+          placeholder="Say anything…"
+          style={{
+            flex: 1, background: "var(--card)", border: "1px solid var(--border2)",
+            borderRadius: "50px", padding: "14px 20px", color: "var(--cream)",
+            fontSize: 14, outline: "none",
+          }}
+        />
+        <button onClick={send} disabled={!input.trim() || streaming} className="btn-press" style={{
+          width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
+          background: input.trim() && !streaming ? "linear-gradient(135deg,#b8942a,#d4b050)" : "var(--bg3)",
+          border: "none", cursor: input.trim() && !streaming ? "pointer" : "not-allowed",
+          fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center"
+        }}>↑</button>
+        {tab==="insights"&&(
+          <InsightsTab
+            days={days} cravings={cravings} journal={journal}
+            messages={messages} mood={todayMood}
+            gratitude={gratitude} intention={intention}
+          />
+        )}
+      </div>
+
+      {!showCompanion&&(
+        <button onClick={()=>setShowCompanion(true)} className="btn-press" style={{
+          position:"fixed", bottom:28, right:20, zIndex:450,
+          width:56, height:56, borderRadius:"50%",
+          background:"linear-gradient(135deg,var(--green-dim),var(--gold-dim))",
+          border:"1px solid var(--border)", cursor:"pointer", fontSize:24,
+          boxShadow:"0 4px 24px rgba(0,0,0,0.4)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          animation:"glowPulse 3s ease infinite",
+        }} title="Open AI Companion">🌿</button>
+      )}
+    </div>
+  );
+}    = "clearpath:messages:CLRP-7423";
 const STORAGE_KEY_PROFILE = "clearpath:profile:CLRP-7423";
 const bc = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("clearpath") : null;
 
@@ -956,6 +1202,12 @@ export default function App(){
     writeSharedMessages(next);
   }
 
+  function deleteMessage(id){
+    const next = messages.filter(m=>m.id!==id);
+    setMessages(next);
+    writeSharedMessages(next);
+  }
+
   function clearMessages(){ setMessages([]); writeSharedMessages([]); }
 
   return (
@@ -970,6 +1222,7 @@ export default function App(){
           messages={messages}
           onPublishProfile={publishProfile}
           onClearMessages={clearMessages}
+          onDeleteMessage={deleteMessage}
         />
       )}
       {role==="supporter"&&(
