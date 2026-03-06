@@ -1,7 +1,6 @@
 # ClearPath — Local Setup Guide
 
-A mindful sobriety tracker with live supporter messaging.
-Zero cost. Runs entirely on your machine.
+the readme was made with a plugin
 
 ---
 
