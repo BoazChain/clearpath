@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { streamAI, askAI, buildUserContext, insightSystemPrompt, companionSystemPrompt } from "./useAI.js";
+import ClearPathDemo from "./ClearPathDemo.jsx";
 
 const MILESTONES = [1,3,7,14,30,60,90,180,365];
 const MILESTONE_NAMES = {1:"First Day",3:"Three Days",7:"One Week",14:"Two Weeks",30:"One Month",60:"Two Months",90:"Three Months",180:"Half a Year",365:"One Full Year"};
@@ -22,12 +23,37 @@ const BREATHING_PHASES = [
 ];
 
 const AFFIRMATIONS = [
-  "Every moment you choose yourself, you rewrite your story.",
-  "Your strength lives precisely in the spaces between craving and choice.",
-  "This discomfort is temporary. The person you're becoming is permanent.",
-  "You are not what happened to you. You are what you choose to do next.",
-  "Recovery is not a straight line. It is a spiral upward.",
-  "The bravest thing you did today was wake up and try again.",
+  { text: "You don't have to see the whole staircase, just take the first step.", author: "Martin Luther King Jr." },
+  { text: "Courage is not the absence of fear, but the judgment that something else is more important than fear.", author: "Ambrose Redmoon" },
+  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+  { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+  { text: "Strength does not come from what you can do. It comes from overcoming the things you once thought you could not.", author: "Rikki Rogers" },
+  { text: "You are not your past. You have the capacity to choose differently today.", author: "Oprah Winfrey" },
+  { text: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "Nelson Mandela" },
+  { text: "In the middle of every difficulty lies opportunity.", author: "Albert Einstein" },
+  { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson" },
+  { text: "Believe you can and you are halfway there.", author: "Theodore Roosevelt" },
+  { text: "The only person you are destined to become is the person you decide to be.", author: "Ralph Waldo Emerson" },
+  { text: "Rock bottom became the solid foundation on which I rebuilt my life.", author: "J.K. Rowling" },
+  { text: "You have been assigned this mountain so that you can show others it can be moved.", author: "Mel Robbins" },
+  { text: "Every day is a new beginning. Take a deep breath, smile, and start again.", author: "Unknown" },
+  { text: "The first step towards getting somewhere is to decide you are not going to stay where you are.", author: "J.P. Morgan" },
+  { text: "Hardships often prepare ordinary people for an extraordinary destiny.", author: "C.S. Lewis" },
+  { text: "Life is not measured by the number of breaths we take, but by the moments that take our breath away.", author: "Maya Angelou" },
+  { text: "You are braver than you believe, stronger than you seem, and smarter than you think.", author: "A.A. Milne" },
+  { text: "The comeback is always stronger than the setback.", author: "Unknown" },
+  { text: "When you get to the end of your rope, tie a knot and hang on.", author: "Franklin D. Roosevelt" },
+  { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+  { text: "With the new day comes new strength and new thoughts.", author: "Eleanor Roosevelt" },
+  { text: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
+  { text: "Every strike brings me closer to the next home run.", author: "Babe Ruth" },
+  { text: "Nothing is impossible. The word itself says I am possible.", author: "Audrey Hepburn" },
+  { text: "Fall seven times, stand up eight.", author: "Japanese Proverb" },
+  { text: "Your present circumstances do not determine where you can go. They merely determine where you start.", author: "Nido Qubein" },
+  { text: "Do not go where the path may lead, go instead where there is no path and leave a trail.", author: "Ralph Waldo Emerson" },
+  { text: "I have not failed. I have just found ten thousand ways that do not work.", author: "Thomas A. Edison" },
+  { text: "The only way out is through.", author: "Robert Frost" },
+  { text: "You gain strength, courage, and confidence by every experience in which you really stop to look fear in the face.", author: "Eleanor Roosevelt" },
 ];
 
 const TRIGGERS = ["Stress","Social pressure","Loneliness","Boredom","Anxiety","Celebration","Anger","Fatigue","Habit","Other"];
@@ -45,7 +71,7 @@ const INITIAL_CRAVINGS = [
 ];
 
 const INITIAL_JOURNAL = [
-  {id:1,text:"Woke up feeling grateful today. The morning light felt different, more present somehow.",ts:Date.now()-86400000,mood:4},
+  {id:1,text:"Woke up feeling grateful today. The morning light felt different, more present, somehow.",ts:Date.now()-86400000,mood:4},
 ];
 
 const CSS = `
@@ -308,7 +334,6 @@ function SupporterPortal({onBack,onSend,stats}){
   const [step,setStep]=useState("code");
   const [codeInput,setCodeInput]=useState("");
   const [codeError,setCodeError]=useState(false);
-  const [connectedName,setConnectedName]=useState("");
   const [form,setForm]=useState({name:"",text:"",nudge:null});
   const [recording,setRecording]=useState(false);
   const [recTime,setRecTime]=useState(0);
@@ -319,7 +344,6 @@ function SupporterPortal({onBack,onSend,stats}){
   function submitCode(){
     const cleaned = codeInput.trim().toUpperCase();
     if(cleaned===VALID_CODE){
-      setConnectedName("someone on their journey");
       setCodeError(false);
       setStep("menu");
     } else {
@@ -394,7 +418,7 @@ function SupporterPortal({onBack,onSend,stats}){
     onSend({id:Date.now(),from:form.name,initials:form.name[0].toUpperCase(),color:"#c9a84c",text:form.text||form.nudge||"",hasAudio:!!audioUrl,duration:dur,audioUrl,ts:Date.now(),isNudge:!form.text&&!!form.nudge});
     setStep("sent");
   }
-
+// if u find this message I REALLY DIDNT USE AI!!!!!! JAHID ON TOP!!!
   if(step==="sent") return (
     <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:32,textAlign:"center",position:"relative",zIndex:1}}>
       <ConfettiBlast/>
@@ -408,7 +432,6 @@ function SupporterPortal({onBack,onSend,stats}){
 
   return (
     <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",position:"relative",zIndex:1}}>
-      {}
       <div style={{padding:"52px 24px 24px",borderBottom:"1px solid var(--border2)"}}>
         <button onClick={onBack} style={{background:"none",border:"none",color:"var(--cream3)",cursor:"pointer",fontSize:13,marginBottom:20,display:"flex",alignItems:"center",gap:6}}>← Back</button>
         <div style={{display:"flex",alignItems:"flex-start",gap:16}}>
@@ -418,7 +441,6 @@ function SupporterPortal({onBack,onSend,stats}){
             <p style={{color:"var(--cream3)",fontSize:13,marginTop:4,fontWeight:300}}>Leave something meaningful for someone who needs it</p>
           </div>
         </div>
-        {}
         <div style={{marginTop:20,background:"var(--bg3)",borderRadius:"var(--r-sm)",padding:"14px 18px",display:"flex",gap:24}}>
           <div style={{textAlign:"center"}}>
             <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:26,color:"var(--gold)"}}>{stats.days}</div>
@@ -438,7 +460,6 @@ function SupporterPortal({onBack,onSend,stats}){
       </div>
 
       <div style={{flex:1,padding:"24px",overflowY:"auto"}}>
-        {}
         <div style={{marginBottom:20}}>
           <label style={{fontSize:11,color:"var(--gold)",textTransform:"uppercase",letterSpacing:"0.15em",display:"block",marginBottom:8}}>Your name</label>
           <input value={form.name} onChange={e=>setForm(p=>({...p,name:e.target.value}))}
@@ -447,7 +468,6 @@ function SupporterPortal({onBack,onSend,stats}){
             onFocus={e=>e.target.style.borderColor="var(--gold-dim)"} onBlur={e=>e.target.style.borderColor="var(--border2)"}/>
         </div>
 
-        {}
         <div style={{marginBottom:20}}>
           <label style={{fontSize:11,color:"var(--gold)",textTransform:"uppercase",letterSpacing:"0.15em",display:"block",marginBottom:12}}>Quick nudge</label>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
@@ -471,7 +491,6 @@ function SupporterPortal({onBack,onSend,stats}){
           <div style={{flex:1,height:1,background:"var(--border2)"}}/>
         </div>
 
-        {}
         <div style={{marginBottom:20}}>
           <textarea value={form.text} onChange={e=>setForm(p=>({...p,text:e.target.value,nudge:e.target.value?null:p.nudge}))}
             placeholder="Write from the heart. There are no wrong words here…"
@@ -480,7 +499,6 @@ function SupporterPortal({onBack,onSend,stats}){
             onFocus={e=>e.target.style.borderColor="var(--gold-dim)"} onBlur={e=>e.target.style.borderColor="var(--border2)"}/>
         </div>
 
-        {}
         <div style={{marginBottom:32}}>
           <label style={{fontSize:11,color:"var(--gold)",textTransform:"uppercase",letterSpacing:"0.15em",display:"block",marginBottom:12}}>Voice memo <span style={{color:"var(--cream3)",textTransform:"none",letterSpacing:0,fontSize:11}}>(optional, most powerful)</span></label>
           {!audioUrl ? (
@@ -526,391 +544,9 @@ function SupporterPortal({onBack,onSend,stats}){
   );
 }
 
-function TrackerApp({onBack,messages,onPublishProfile,onClearMessages,onDeleteMessage}){
-  const [startTs] = useState(()=>Date.now()-23*86400000);
-  const [days, setDays] = useState(()=>daysSince(Date.now()-23*86400000));
-  const [tab,setTab]=useState("today");
-  const [todayMood,setTodayMood]=useState(null);
-  const [cravings,setCravings]=useState(INITIAL_CRAVINGS);
-  const [journal,setJournal]=useState(INITIAL_JOURNAL);
-  const [gratitude,setGratitude]=useState(["","",""]);
-  const [intention,setIntention]=useState("");
-  const [intentionSaved,setIntentionSaved]=useState(false);
-  const [showBreathing,setShowBreathing]=useState(false);
-  const [showCravingForm,setShowCravingForm]=useState(false);
-  const [showJournalForm,setShowJournalForm]=useState(false);
-  const [showMilestone,setShowMilestone]=useState(null);
-  const [newCraving,setNewCraving]=useState({trigger:"",intensity:5,note:""});
-  const [newJournal,setNewJournal]=useState("");
-  const [playingId,setPlayingId]=useState(null);
-  const [prevDays,setPrevDays]=useState(days);
-  const [showCompanion,setShowCompanion]=useState(false);
-
-  useEffect(()=>{
-    onPublishProfile({days, cravingsOvercome:cravings.filter(c=>c.overcome).length, supporters:3});
-  },[days, cravings]);
-
-  useEffect(()=>{
-    if(MILESTONES.includes(days)&&days!==prevDays){setShowMilestone(days);}
-    setPrevDays(days);
-  },[days]);
-
-  const nxt=nextMilestone(days);
-  const prog=milestoneProgress(days);
-  const allMessages=[...INITIAL_MESSAGES,...messages].sort((a,b)=>b.ts-a.ts);
-  const newMsgCount = messages.filter(m=>m.ts>Date.now()-300000).length;
-
-  function submitCraving(){
-    if(!newCraving.trigger) return;
-    setCravings(p=>[{id:Date.now(),trigger:newCraving.trigger,intensity:newCraving.intensity,note:newCraving.note,ts:Date.now(),overcome:false},...p]);
-    setNewCraving({trigger:"",intensity:5,note:""});
-    setShowCravingForm(false);
-  }
-  function markOvercome(id){setCravings(p=>p.map(c=>c.id===id?{...c,overcome:true}:c));}
-  function submitJournal(){
-    if(!newJournal.trim()) return;
-    setJournal(p=>[{id:Date.now(),text:newJournal,ts:Date.now(),mood:todayMood},...p]);
-    setNewJournal(""); setShowJournalForm(false);
-  }
-
-  const today = new Date().toDateString();
-  const affirmation = AFFIRMATIONS[new Date().getDate()%AFFIRMATIONS.length];
-  const todayCravings = cravings.filter(c=>new Date(c.ts).toDateString()===today);
-
-  const TABS=[
-    {id:"today",icon:"🌿",label:"Today"},
-    {id:"cravings",icon:"🌊",label:"Cravings"},
-    {id:"journal",icon:"📖",label:"Journal"},
-    {id:"messages",icon:"💛",label:"Messages"},
-    {id:"insights",icon:"✨",label:"Insights"},
-  ];
-
-  return (
-    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",position:"relative",zIndex:1}}>
-      {showBreathing&&<BreathingModal onClose={()=>setShowBreathing(false)}/>}
-      {showMilestone&&<MilestoneToast days={showMilestone} onClose={()=>setShowMilestone(null)}/>}
-      {showCompanion&&(
-        <CompanionModal
-          onClose={()=>setShowCompanion(false)}
-          days={days} cravings={cravings} journal={journal}
-          messages={messages} mood={todayMood}
-          gratitude={gratitude} intention={intention}
-        />
-      )}
-      <div style={{background:"linear-gradient(180deg,var(--bg2),var(--bg))",padding:"48px 24px 0",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-60,right:-60,width:240,height:240,borderRadius:"50%",background:"radial-gradient(circle,rgba(201,168,76,0.06),transparent)"}}/>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
-          <div>
-            <p style={{color:"var(--cream3)",fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",marginBottom:4}}>
-              {new Date().toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"})}
-            </p>
-            <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:28,fontWeight:300,color:"var(--cream)",lineHeight:1.2}}>
-              {days===0?"Day one begins":days<7?"Keep going":"You're on track"}
-            </h1>
-          </div>
-          <button onClick={onBack} style={{background:"rgba(255,255,255,0.05)",border:"1px solid var(--border2)",color:"var(--cream3)",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:13,flexShrink:0}}>✕</button>
-        </div>
-
-        {}
-        <div style={{display:"flex",alignItems:"center",gap:24,marginBottom:24}}>
-          <StreakRing days={days}/>
-          <div style={{flex:1}}>
-            {nxt&&<>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                <span style={{color:"var(--cream3)",fontSize:12}}>{MILESTONE_ICONS[nxt]} {MILESTONE_NAMES[nxt]}</span>
-                <span style={{color:"var(--gold)",fontSize:12}}>{nxt-days}d left</span>
-              </div>
-              <div style={{background:"var(--bg3)",borderRadius:"50px",height:6}}>
-                <div style={{background:"linear-gradient(90deg,var(--gold),var(--gold2))",borderRadius:"50px",height:"100%",width:`${prog}%`,transition:"width 1s ease",boxShadow:"0 0 8px rgba(201,168,76,0.4)"}}/>
-              </div>
-            </>}
-            {!nxt&&<div style={{color:"var(--gold)",fontFamily:"'Cormorant Garamond',serif",fontSize:18}}>🌳 One full year. Extraordinary.</div>}
-            <div style={{display:"flex",gap:12,marginTop:12}}>
-              <button onClick={()=>setShowBreathing(true)} className="btn-press" style={{background:"var(--green-dim)",border:"none",borderRadius:"50px",padding:"8px 16px",color:"var(--green2)",cursor:"pointer",fontSize:12,fontWeight:500}}>🫁 Breathe</button>
-              <button onClick={()=>setShowCravingForm(true)} className="btn-press" style={{background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"50px",padding:"8px 16px",color:"var(--cream3)",cursor:"pointer",fontSize:12}}>+ Log craving</button>
-            </div>
-          </div>
-        </div>
-
-        {}
-        <div style={{display:"flex",gap:0,borderBottom:"1px solid var(--border2)"}}>
-          {TABS.map(t=>{
-            const active=tab===t.id;
-            return (
-              <button key={t.id} onClick={()=>setTab(t.id)} style={{
-                flex:1,background:"none",border:"none",borderBottom:`2px solid ${active?"var(--gold)":"transparent"}`,
-                padding:"12px 4px",cursor:"pointer",
-                display:"flex",flexDirection:"column",alignItems:"center",gap:3,
-                transition:"all 0.2s",position:"relative",
-              }}>
-                <span style={{fontSize:16,opacity:active?1:0.45}}>{t.icon}</span>
-                <span style={{fontSize:10,color:active?"var(--gold)":"var(--cream3)",fontWeight:active?600:400,letterSpacing:"0.05em"}}>{t.label}</span>
-                {t.id==="messages"&&newMsgCount>0&&<span style={{position:"absolute",top:8,right:"50%",transform:"translateX(12px)",width:8,height:8,borderRadius:"50%",background:"var(--gold)"}}/>}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {}
-      <div style={{flex:1,overflowY:"auto",padding:"24px"}}>
-
-        {}
-        {tab==="today"&&(
-          <div style={{animation:"fadeUp 0.4s ease"}}>
-            {}
-            <Card style={{marginBottom:14}}>
-              <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:14}}>How are you feeling?</p>
-              <div style={{display:"flex",gap:6}}>
-                {MOODS.map((m,i)=><MoodDot key={i} m={m} selected={todayMood===i} onClick={()=>setTodayMood(i)}/>)}
-              </div>
-              {todayMood!==null&&<p style={{color:"var(--cream3)",fontSize:13,marginTop:12,fontStyle:"italic"}}>Feeling {MOODS[todayMood].label.toLowerCase()} today. That is noted and that is valid.</p>}
-            </Card>
-
-            {}
-            <Card style={{marginBottom:14,background:"linear-gradient(135deg,var(--bg3),var(--card))",border:"1px solid var(--border)"}}>
-              <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:12}}>Today's reflection</p>
-              <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,fontStyle:"italic",color:"var(--cream)",lineHeight:1.7,margin:0}}>"{affirmation}"</p>
-            </Card>
-
-            {}
-            <Card style={{marginBottom:14}}>
-              <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:12}}>Set your intention</p>
-              {!intentionSaved?(
-                <div style={{display:"flex",gap:10}}>
-                  <input value={intention} onChange={e=>setIntention(e.target.value)}
-                    placeholder="Today I choose to…"
-                    style={{flex:1,background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"var(--r-xs)",padding:"12px 14px",color:"var(--cream)",fontSize:14,outline:"none"}}/>
-                  <button onClick={()=>intention&&setIntentionSaved(true)} className="btn-press" style={{background:"var(--green-dim)",border:"none",borderRadius:"var(--r-xs)",padding:"12px 16px",color:"var(--green2)",cursor:"pointer",fontSize:13}}>Set</button>
-                </div>
-              ):(
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,fontStyle:"italic",color:"var(--cream)",margin:0}}>"{intention}"</p>
-                  <button onClick={()=>setIntentionSaved(false)} style={{background:"none",border:"none",color:"var(--cream3)",cursor:"pointer",fontSize:12}}>Edit</button>
-                </div>
-              )}
-            </Card>
-
-            {}
-            <Card style={{marginBottom:14}}>
-              <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:12}}>Three things I'm grateful for</p>
-              {gratitude.map((g,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:i<2?8:0}}>
-                  <span style={{color:"var(--gold)",fontSize:12,fontWeight:600,width:16}}>{i+1}.</span>
-                  <input value={g} onChange={e=>{const n=[...gratitude];n[i]=e.target.value;setGratitude(n);}}
-                    placeholder={["Something small today…","A person in my corner…","Something my body did…"][i]}
-                    style={{flex:1,background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"var(--r-xs)",padding:"10px 12px",color:"var(--cream)",fontSize:13,outline:"none"}}/>
-                </div>
-              ))}
-            </Card>
-
-            {}
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
-              {[
-                {label:"Cravings today",val:todayCravings.length,icon:"🌊",color:"var(--blue)"},
-                {label:"Total days",val:days,icon:"🔥",color:"var(--gold)"},
-                {label:"Overcome",val:cravings.filter(c=>c.overcome).length,icon:"💚",color:"var(--green)"},
-              ].map((s,i)=>(
-                <Card key={i} style={{textAlign:"center",padding:"16px 10px"}}>
-                  <div style={{fontSize:20,marginBottom:4}}>{s.icon}</div>
-                  <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:26,color:s.color}}>{s.val}</div>
-                  <div style={{color:"var(--cream3)",fontSize:10,lineHeight:1.3}}>{s.label}</div>
-                </Card>
-              ))}
-            </div>
-
-            {}
-            <button onClick={()=>setShowBreathing(true)} className="btn-press hover-lift" style={{
-              width:"100%",background:"linear-gradient(135deg,rgba(201,80,74,0.1),rgba(201,80,74,0.05))",
-              border:"1px solid rgba(201,80,74,0.3)",borderRadius:"var(--r)",padding:"18px 20px",
-              cursor:"pointer",display:"flex",alignItems:"center",gap:16,textAlign:"left"
-            }}>
-              <div style={{fontSize:32}}>🆘</div>
-              <div>
-                <div style={{color:"#e88a84",fontSize:14,fontWeight:600}}>I need help right now</div>
-                <div style={{color:"var(--cream3)",fontSize:12}}>Tap for guided breathing & grounding</div>
-              </div>
-            </button>
-          </div>
-        )}
-
-        {}
-        {tab==="cravings"&&(
-          <div style={{animation:"fadeUp 0.4s ease"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-              <div>
-                <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:24,fontWeight:400,color:"var(--cream)"}}>Craving Journal</h2>
-                <p style={{color:"var(--cream3)",fontSize:13,marginTop:2}}>{cravings.filter(c=>c.overcome).length} of {cravings.length} overcome</p>
-              </div>
-              <button onClick={()=>setShowCravingForm(true)} className="btn-press" style={{background:"var(--gold-dim)",border:"none",borderRadius:"50px",padding:"10px 20px",color:"var(--gold2)",cursor:"pointer",fontSize:13}}>+ Log</button>
-            </div>
-
-            {showCravingForm&&(
-              <Card style={{marginBottom:16,border:"1px solid var(--border)",animation:"scaleIn 0.3s ease"}}>
-                <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:16}}>New craving entry</p>
-                <div style={{marginBottom:14}}>
-                  <p style={{color:"var(--cream3)",fontSize:12,marginBottom:8}}>What triggered it?</p>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
-                    {TRIGGERS.map(t=>(
-                      <button key={t} onClick={()=>setNewCraving(p=>({...p,trigger:t}))} className="btn-press" style={{
-                        background:newCraving.trigger===t?"var(--gold-dim)":"var(--bg3)",
-                        border:`1px solid ${newCraving.trigger===t?"var(--gold)":"var(--border2)"}`,
-                        borderRadius:"50px",padding:"6px 14px",cursor:"pointer",
-                        color:newCraving.trigger===t?"var(--gold)":"var(--cream3)",fontSize:13,
-                      }}>{t}</button>
-                    ))}
-                  </div>
-                </div>
-                <div style={{marginBottom:14}}>
-                  <p style={{color:"var(--cream3)",fontSize:12,marginBottom:8}}>Intensity: <span style={{color:"var(--cream)",fontWeight:600}}>{newCraving.intensity}/10</span></p>
-                  <input type="range" min="1" max="10" value={newCraving.intensity} onChange={e=>setNewCraving(p=>({...p,intensity:+e.target.value}))} style={{width:"100%"}}/>
-                </div>
-                <textarea value={newCraving.note} onChange={e=>setNewCraving(p=>({...p,note:e.target.value}))}
-                  placeholder="How are you coping right now? What will you do instead?"
-                  rows={2}
-                  style={{width:"100%",background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"var(--r-xs)",padding:"12px",color:"var(--cream)",fontSize:13,resize:"none",outline:"none",marginBottom:12,fontFamily:"'DM Sans',sans-serif"}}/>
-                {}
-                <div style={{background:"rgba(74,157,122,0.08)",border:"1px solid rgba(74,157,122,0.2)",borderRadius:"var(--r-xs)",padding:"12px",marginBottom:14}}>
-                  <p style={{color:"var(--green2)",fontSize:13,margin:0}}>💚 Right now: breathe in for 4, hold for 4, out for 6. The wave will pass in under 20 minutes.</p>
-                </div>
-                <div style={{display:"flex",gap:10}}>
-                  <button onClick={()=>setShowCravingForm(false)} style={{flex:1,background:"none",border:"1px solid var(--border2)",borderRadius:"50px",padding:"12px",color:"var(--cream3)",cursor:"pointer",fontSize:13}}>Cancel</button>
-                  <button onClick={submitCraving} disabled={!newCraving.trigger} className="btn-press" style={{flex:2,background:newCraving.trigger?"var(--green-dim)":"var(--bg3)",border:"none",borderRadius:"50px",padding:"12px",color:newCraving.trigger?"var(--green2)":"var(--cream3)",cursor:newCraving.trigger?"pointer":"not-allowed",fontSize:13,fontWeight:600}}>Save entry</button>
-                </div>
-              </Card>
-            )}
-
-            {cravings.map(c=>(
-              <Card key={c.id} style={{marginBottom:12,opacity:c.overcome?0.7:1,transition:"opacity 0.3s"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <div style={{width:8,height:8,borderRadius:"50%",background:c.intensity>7?"var(--red)":c.intensity>4?"#e8a84c":"var(--green)",flexShrink:0}}/>
-                    <span style={{color:"var(--cream)",fontSize:14,fontWeight:500}}>{c.trigger}</span>
-                    {c.overcome&&<span style={{background:"rgba(74,157,122,0.15)",color:"var(--green2)",fontSize:10,padding:"2px 8px",borderRadius:"50px",border:"1px solid rgba(74,157,122,0.3)"}}>Overcome</span>}
-                  </div>
-                  <span style={{color:"var(--cream3)",fontSize:11}}>{fmtDate(c.ts)}, {fmtTime(c.ts)}</span>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:c.note?10:0}}>
-                  <div style={{flex:1,background:"var(--bg3)",borderRadius:"50px",height:5}}>
-                    <div style={{width:`${c.intensity*10}%`,background:c.intensity>7?"var(--red)":c.intensity>4?"#e8a84c":"var(--green)",borderRadius:"50px",height:"100%",transition:"width 0.6s"}}/>
-                  </div>
-                  <span style={{color:"var(--cream3)",fontSize:11,fontWeight:600,width:32,textAlign:"right"}}>{c.intensity}/10</span>
-                </div>
-                {c.note&&<p style={{color:"var(--cream3)",fontSize:13,fontStyle:"italic",marginBottom:10}}>"{c.note}"</p>}
-                {!c.overcome&&(
-                  <button onClick={()=>markOvercome(c.id)} className="btn-press" style={{background:"none",border:"1px solid var(--green-dim)",borderRadius:"50px",padding:"6px 16px",color:"var(--green2)",cursor:"pointer",fontSize:12,marginTop:4}}>✓ Mark as overcome</button>
-                )}
-              </Card>
-            ))}
-            {cravings.length===0&&<div style={{textAlign:"center",padding:"48px 0",color:"var(--cream3)"}}>
-              <div style={{fontSize:48,marginBottom:12,opacity:0.4}}>🌊</div>
-              <p style={{fontFamily:"'Cormorant Garamond',serif",fontStyle:"italic",fontSize:18}}>No cravings logged yet</p>
-            </div>}
-          </div>
-        )}
-
-        {}
-        {tab==="journal"&&(
-          <div style={{animation:"fadeUp 0.4s ease"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-              <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:24,fontWeight:400,color:"var(--cream)"}}>Your Journal</h2>
-              <button onClick={()=>setShowJournalForm(true)} className="btn-press" style={{background:"var(--gold-dim)",border:"none",borderRadius:"50px",padding:"10px 20px",color:"var(--gold2)",cursor:"pointer",fontSize:13}}>+ Write</button>
-            </div>
-            {showJournalForm&&(
-              <Card style={{marginBottom:16,border:"1px solid var(--border)",animation:"scaleIn 0.3s ease"}}>
-                <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:12}}>New entry</p>
-                <textarea value={newJournal} onChange={e=>setNewJournal(e.target.value)}
-                  placeholder="Write anything. This is yours alone…"
-                  rows={5}
-                  style={{width:"100%",background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"var(--r-xs)",padding:"14px",color:"var(--cream)",fontSize:15,resize:"none",outline:"none",lineHeight:1.8,fontFamily:"'Cormorant Garamond',serif",fontStyle:"italic",marginBottom:14}}/>
-                <div style={{display:"flex",gap:10}}>
-                  <button onClick={()=>setShowJournalForm(false)} style={{flex:1,background:"none",border:"1px solid var(--border2)",borderRadius:"50px",padding:"12px",color:"var(--cream3)",cursor:"pointer",fontSize:13}}>Cancel</button>
-                  <button onClick={submitJournal} disabled={!newJournal.trim()} className="btn-press" style={{flex:2,background:newJournal.trim()?"var(--gold-dim)":"var(--bg3)",border:"none",borderRadius:"50px",padding:"12px",color:newJournal.trim()?"var(--gold2)":"var(--cream3)",cursor:newJournal.trim()?"pointer":"not-allowed",fontSize:13,fontWeight:600}}>Save entry</button>
-                </div>
-              </Card>
-            )}
-            {journal.map(j=>(
-              <Card key={j.id} style={{marginBottom:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
-                  <span style={{color:"var(--cream3)",fontSize:12}}>{fmtDate(j.ts)}</span>
-                  {j.mood!==null&&j.mood!==undefined&&<span style={{fontSize:16}}>{MOODS[j.mood]?.emoji}</span>}
-                </div>
-                <GoldDivider/>
-                <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontStyle:"italic",color:"var(--cream)",lineHeight:1.8,marginTop:12}}>{j.text}</p>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {}
-        {tab==="messages"&&(
-          <div style={{animation:"fadeUp 0.4s ease"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:24,fontWeight:400,color:"var(--cream)"}}>From your people</h2>
-              {messages.length>0&&<button onClick={onClearMessages} className="btn-press" style={{background:"none",border:"1px solid var(--border2)",borderRadius:"50px",padding:"6px 14px",color:"var(--cream3)",cursor:"pointer",fontSize:11}}>Clear received</button>}
-            </div>
-            <p style={{color:"var(--cream3)",fontSize:13,marginBottom:20}}>{allMessages.length} messages · {newMsgCount>0?<span style={{color:"var(--gold)"}}>{newMsgCount} just arrived</span>:"all caught up"}</p>
-            {allMessages.map(m=>(
-              <Card key={m.id} style={{marginBottom:14}}>
-                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-                  <div style={{width:44,height:44,borderRadius:"50%",background:m.color||"var(--gold-dim)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Cormorant Garamond',serif",fontSize:20,color:"var(--bg)",fontWeight:600,flexShrink:0}}>{m.initials||m.from[0]}</div>
-                  <div style={{flex:1}}>
-                    <div style={{color:"var(--cream)",fontWeight:600,fontSize:15}}>{m.from}</div>
-                    <div style={{color:"var(--cream3)",fontSize:11,marginTop:2}}>{fmtDate(m.ts)} · {fmtTime(m.ts)}{m.hasAudio?` · 🎙 ${m.duration}`:""}</div>
-                  </div>
-                  {m.ts>Date.now()-86400000&&<span style={{background:"rgba(201,168,76,0.15)",color:"var(--gold)",fontSize:10,padding:"3px 8px",borderRadius:"50px",border:"1px solid var(--border)"}}>New</span>}
-                  {onDeleteMessage&&!m.isFixed&&(
-                    <button
-                      onClick={()=>onDeleteMessage(m.id)}
-                      title="Remove message"
-                      style={{
-                        background:"none",border:"1px solid rgba(201,80,74,0.25)",
-                        borderRadius:"50%",width:28,height:28,cursor:"pointer",
-                        color:"rgba(201,80,74,0.6)",fontSize:14,flexShrink:0,
-                        display:"flex",alignItems:"center",justifyContent:"center",
-                        transition:"all 0.15s",lineHeight:1,
-                      }}
-                      onMouseEnter={e=>{e.currentTarget.style.background="rgba(201,80,74,0.12)";e.currentTarget.style.color="var(--red)";e.currentTarget.style.borderColor="var(--red)";}}
-                      onMouseLeave={e=>{e.currentTarget.style.background="none";e.currentTarget.style.color="rgba(201,80,74,0.6)";e.currentTarget.style.borderColor="rgba(201,80,74,0.25)";}}
-                    >✕</button>
-                  )}
-                </div>
-                {m.isNudge?(
-                  <div style={{textAlign:"center",padding:"12px 0",fontSize:32}}>{m.text}</div>
-                ):(
-                  <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontStyle:"italic",color:"var(--cream)",lineHeight:1.8,marginBottom:m.hasAudio?14:0}}>"{m.text}"</p>
-                )}
-                {m.hasAudio&&m.audioUrl&&(
-                  <audio src={m.audioUrl} controls style={{width:"100%",marginTop:4,filter:"invert(1) hue-rotate(180deg) brightness(0.7)"}}/>
-                )}
-                {m.hasAudio&&!m.audioUrl&&(
-                  <button onClick={()=>setPlayingId(p=>p===m.id?null:m.id)} className="btn-press" style={{
-                    display:"flex",alignItems:"center",gap:10,width:"100%",
-                    background:playingId===m.id?"var(--gold-dim)":"var(--bg3)",
-                    border:`1px solid ${playingId===m.id?"var(--gold)":"var(--border2)"}`,
-                    borderRadius:"50px",padding:"10px 18px",cursor:"pointer",
-                  }}>
-                    <span style={{fontSize:16}}>{playingId===m.id?"⏸":"▶"}</span>
-                    <span style={{color:playingId===m.id?"var(--gold)":"var(--cream3)",fontSize:13}}>{playingId===m.id?`Playing · ${m.duration}`:`Play voice memo · ${m.duration}`}</span>
-                  </button>
-                )}
-              </Card>
-            ))}
-            <Card style={{textAlign:"center",border:"1px solid var(--border)",background:"var(--bg3)"}}>
-              <p style={{color:"var(--cream3)",fontSize:13,marginBottom:12}}>Share your supporter code</p>
-              <div style={{fontFamily:"monospace",fontSize:22,color:"var(--gold)",letterSpacing:"0.3em",fontWeight:700,padding:"12px",background:"var(--bg)",borderRadius:"var(--r-xs)",display:"inline-block"}}>CLRP-7423</div>
-              <p style={{color:"var(--cream3)",fontSize:11,marginTop:10,opacity:0.6}}>Supporters enter this code to send you messages</p>
-            </Card>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function InsightsTab({ days, cravings, journal, messages, mood, gratitude, intention }) {
   const CACHE_KEY = "clearpath:insight:" + new Date().toDateString();
-  const [insight, setInsight] = useState(() => localStorage.getItem(CACHE_KEY) || "");
+  const [insight, setInsight] = useState(() => { try { return localStorage.getItem(CACHE_KEY) || ""; } catch { return ""; } });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -919,7 +555,7 @@ function InsightsTab({ days, cravings, journal, messages, mood, gratitude, inten
     try {
       const ctx = buildUserContext({ days, cravings, journal, messages, mood, gratitude, intention });
       const result = await askAI(insightSystemPrompt(ctx), "Generate my daily insight for today.");
-      localStorage.setItem(CACHE_KEY, result);
+      try { localStorage.setItem(CACHE_KEY, result); } catch {}
       setInsight(result);
     } catch(e) {
       setError(e.message);
@@ -1003,13 +639,11 @@ function CompanionModal({ onClose, days, cravings, journal, messages, mood, grat
     const newHistory = [...history, { role: "user", content: userMsg }];
     setHistory(newHistory);
     setStreaming(true);
-
     setHistory(h => [...h, { role: "assistant", content: "" }]);
 
     try {
       const ctx = buildUserContext({ days, cravings, journal, messages, mood, gratitude, intention });
       const apiHistory = newHistory.slice(0, -1).map(m => ({ role: m.role, content: m.content }));
-
       await streamAI(
         companionSystemPrompt(ctx),
         userMsg,
@@ -1047,7 +681,7 @@ function CompanionModal({ onClose, days, cravings, journal, messages, mood, grat
             <p style={{ color: "var(--cream3)", fontSize: 12, textAlign: "center", marginBottom: 12 }}>Or start with</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center" }}>
               {STARTERS.map(s => (
-                <button key={s} onClick={() => { setInput(s); }} className="btn-press" style={{
+                <button key={s} onClick={() => setInput(s)} className="btn-press" style={{
                   background: "var(--card)", border: "1px solid var(--border2)", borderRadius: "50px",
                   padding: "8px 14px", color: "var(--cream3)", cursor: "pointer", fontSize: 12
                 }}>{s}</button>
@@ -1107,6 +741,376 @@ function CompanionModal({ onClose, days, cravings, journal, messages, mood, grat
           border: "none", cursor: input.trim() && !streaming ? "pointer" : "not-allowed",
           fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center"
         }}>↑</button>
+      </div>
+    </div>
+  );
+}
+
+function TrackerApp({onBack,messages,onPublishProfile,onClearMessages,onDeleteMessage}){
+  const [days] = useState(()=>daysSince(Date.now()-23*86400000));
+  const [tab,setTab]=useState("today");
+  const [todayMood,setTodayMood]=useState(null);
+  const [cravings,setCravings]=useState(INITIAL_CRAVINGS);
+  const [journal,setJournal]=useState(INITIAL_JOURNAL);
+  const [gratitude,setGratitude]=useState(["","",""]);
+  const [intention,setIntention]=useState("");
+  const [intentionSaved,setIntentionSaved]=useState(false);
+  const [showBreathing,setShowBreathing]=useState(false);
+  const [showCravingForm,setShowCravingForm]=useState(false);
+  const [showJournalForm,setShowJournalForm]=useState(false);
+  const [showMilestone,setShowMilestone]=useState(null);
+  const [newCraving,setNewCraving]=useState({trigger:"",intensity:5,note:""});
+  const [newJournal,setNewJournal]=useState("");
+  const [playingId,setPlayingId]=useState(null);
+  const [prevDays,setPrevDays]=useState(days);
+  const [showCompanion,setShowCompanion]=useState(false);
+
+  useEffect(()=>{
+    onPublishProfile({days, cravingsOvercome:cravings.filter(c=>c.overcome).length, supporters:3});
+  },[days, cravings]);
+
+  useEffect(()=>{
+    if(MILESTONES.includes(days)&&days!==prevDays){setShowMilestone(days);}
+    setPrevDays(days);
+  },[days]);
+
+  const nxt=nextMilestone(days);
+  const prog=milestoneProgress(days);
+  const allMessages=[...INITIAL_MESSAGES,...messages].sort((a,b)=>b.ts-a.ts);
+  const newMsgCount = messages.filter(m=>m.ts>Date.now()-300000).length;
+
+  function submitCraving(){
+    if(!newCraving.trigger) return;
+    setCravings(p=>[{id:Date.now(),trigger:newCraving.trigger,intensity:newCraving.intensity,note:newCraving.note,ts:Date.now(),overcome:false},...p]);
+    setNewCraving({trigger:"",intensity:5,note:""});
+    setShowCravingForm(false);
+  }
+  function markOvercome(id){setCravings(p=>p.map(c=>c.id===id?{...c,overcome:true}:c));}
+  function submitJournal(){
+    if(!newJournal.trim()) return;
+    setJournal(p=>[{id:Date.now(),text:newJournal,ts:Date.now(),mood:todayMood},...p]);
+    setNewJournal(""); setShowJournalForm(false);
+  }
+
+  const today = new Date().toDateString();
+  const affirmation = AFFIRMATIONS[new Date().getDate()%AFFIRMATIONS.length];
+  const todayCravings = cravings.filter(c=>new Date(c.ts).toDateString()===today);
+
+  const TABS=[
+    {id:"today",icon:"🌿",label:"Today"},
+    {id:"cravings",icon:"🌊",label:"Cravings"},
+    {id:"journal",icon:"📖",label:"Journal"},
+    {id:"messages",icon:"💛",label:"Messages"},
+    {id:"insights",icon:"✨",label:"Insights"},
+  ];
+
+  return (
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",position:"relative",zIndex:1}}>
+      {showBreathing&&<BreathingModal onClose={()=>setShowBreathing(false)}/>}
+      {showMilestone&&<MilestoneToast days={showMilestone} onClose={()=>setShowMilestone(null)}/>}
+      {showCompanion&&(
+        <CompanionModal
+          onClose={()=>setShowCompanion(false)}
+          days={days} cravings={cravings} journal={journal}
+          messages={messages} mood={todayMood}
+          gratitude={gratitude} intention={intention}
+        />
+      )}
+
+      <div style={{background:"linear-gradient(180deg,var(--bg2),var(--bg))",padding:"48px 24px 0",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-60,right:-60,width:240,height:240,borderRadius:"50%",background:"radial-gradient(circle,rgba(201,168,76,0.06),transparent)"}}/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:24}}>
+          <div>
+            <p style={{color:"var(--cream3)",fontSize:11,letterSpacing:"0.2em",textTransform:"uppercase",marginBottom:4}}>
+              {new Date().toLocaleDateString([],{weekday:"long",month:"long",day:"numeric"})}
+            </p>
+            <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:28,fontWeight:300,color:"var(--cream)",lineHeight:1.2}}>
+              {days===0?"Day one begins":days<7?"Keep going":"You're on track"}
+            </h1>
+          </div>
+          <button onClick={onBack} style={{background:"rgba(255,255,255,0.05)",border:"1px solid var(--border2)",color:"var(--cream3)",borderRadius:"50%",width:36,height:36,cursor:"pointer",fontSize:13,flexShrink:0}}>✕</button>
+        </div>
+
+        <div style={{display:"flex",alignItems:"center",gap:24,marginBottom:24}}>
+          <StreakRing days={days}/>
+          <div style={{flex:1}}>
+            {nxt&&<>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                <span style={{color:"var(--cream3)",fontSize:12}}>{MILESTONE_ICONS[nxt]} {MILESTONE_NAMES[nxt]}</span>
+                <span style={{color:"var(--gold)",fontSize:12}}>{nxt-days}d left</span>
+              </div>
+              <div style={{background:"var(--bg3)",borderRadius:"50px",height:6}}>
+                <div style={{background:"linear-gradient(90deg,var(--gold),var(--gold2))",borderRadius:"50px",height:"100%",width:`${prog}%`,transition:"width 1s ease",boxShadow:"0 0 8px rgba(201,168,76,0.4)"}}/>
+              </div>
+            </>}
+            {!nxt&&<div style={{color:"var(--gold)",fontFamily:"'Cormorant Garamond',serif",fontSize:18}}>🌳 One full year. Extraordinary.</div>}
+            <div style={{display:"flex",gap:12,marginTop:12}}>
+              <button onClick={()=>setShowBreathing(true)} className="btn-press" style={{background:"var(--green-dim)",border:"none",borderRadius:"50px",padding:"8px 16px",color:"var(--green2)",cursor:"pointer",fontSize:12,fontWeight:500}}>🫁 Breathe</button>
+              <button onClick={()=>setShowCravingForm(true)} className="btn-press" style={{background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"50px",padding:"8px 16px",color:"var(--cream3)",cursor:"pointer",fontSize:12}}>+ Log craving</button>
+            </div>
+          </div>
+        </div>
+
+        <div style={{display:"flex",gap:0,borderBottom:"1px solid var(--border2)"}}>
+          {TABS.map(t=>{
+            const active=tab===t.id;
+            return (
+              <button key={t.id} onClick={()=>setTab(t.id)} style={{
+                flex:1,background:"none",border:"none",borderBottom:`2px solid ${active?"var(--gold)":"transparent"}`,
+                padding:"12px 4px",cursor:"pointer",
+                display:"flex",flexDirection:"column",alignItems:"center",gap:3,
+                transition:"all 0.2s",position:"relative",
+              }}>
+                <span style={{fontSize:16,opacity:active?1:0.45}}>{t.icon}</span>
+                <span style={{fontSize:10,color:active?"var(--gold)":"var(--cream3)",fontWeight:active?600:400,letterSpacing:"0.05em"}}>{t.label}</span>
+                {t.id==="messages"&&newMsgCount>0&&<span style={{position:"absolute",top:8,right:"50%",transform:"translateX(12px)",width:8,height:8,borderRadius:"50%",background:"var(--gold)"}}/>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{flex:1,overflowY:"auto",padding:"24px"}}>
+
+        {tab==="today"&&(
+          <div style={{animation:"fadeUp 0.4s ease"}}>
+            <Card style={{marginBottom:14}}>
+              <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:14}}>How are you feeling?</p>
+              <div style={{display:"flex",gap:6}}>
+                {MOODS.map((m,i)=><MoodDot key={i} m={m} selected={todayMood===i} onClick={()=>setTodayMood(i)}/>)}
+              </div>
+              {todayMood!==null&&<p style={{color:"var(--cream3)",fontSize:13,marginTop:12,fontStyle:"italic"}}>Feeling {MOODS[todayMood].label.toLowerCase()} today. That is noted and that is valid.</p>}
+            </Card>
+
+            <Card style={{marginBottom:14,background:"linear-gradient(135deg,var(--bg3),var(--card))",border:"1px solid var(--border)"}}>
+              <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:12}}>Today's reflection</p>
+              <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,fontStyle:"italic",color:"var(--cream)",lineHeight:1.7,margin:0,marginBottom:10}}>"{affirmation.text}"</p>
+              <p style={{fontSize:11,color:"var(--cream3)",textAlign:"right",letterSpacing:"0.04em"}}>- {affirmation.author}</p>
+            </Card>
+
+            <Card style={{marginBottom:14}}>
+              <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:12}}>Set your intention</p>
+              {!intentionSaved?(
+                <div style={{display:"flex",gap:10}}>
+                  <input value={intention} onChange={e=>setIntention(e.target.value)}
+                    placeholder="Today I choose to…"
+                    style={{flex:1,background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"var(--r-xs)",padding:"12px 14px",color:"var(--cream)",fontSize:14,outline:"none"}}/>
+                  <button onClick={()=>intention&&setIntentionSaved(true)} className="btn-press" style={{background:"var(--green-dim)",border:"none",borderRadius:"var(--r-xs)",padding:"12px 16px",color:"var(--green2)",cursor:"pointer",fontSize:13}}>Set</button>
+                </div>
+              ):(
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:17,fontStyle:"italic",color:"var(--cream)",margin:0}}>"{intention}"</p>
+                  <button onClick={()=>setIntentionSaved(false)} style={{background:"none",border:"none",color:"var(--cream3)",cursor:"pointer",fontSize:12}}>Edit</button>
+                </div>
+              )}
+            </Card>
+
+            <Card style={{marginBottom:14}}>
+              <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:12}}>Three things I'm grateful for</p>
+              {gratitude.map((g,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:i<2?8:0}}>
+                  <span style={{color:"var(--gold)",fontSize:12,fontWeight:600,width:16}}>{i+1}.</span>
+                  <input value={g} onChange={e=>{const n=[...gratitude];n[i]=e.target.value;setGratitude(n);}}
+                    placeholder={["Something small today…","A person in my corner…","Something my body did…"][i]}
+                    style={{flex:1,background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"var(--r-xs)",padding:"10px 12px",color:"var(--cream)",fontSize:13,outline:"none"}}/>
+                </div>
+              ))}
+            </Card>
+
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+              {[
+                {label:"Cravings today",val:todayCravings.length,icon:"🌊",color:"var(--blue)"},
+                {label:"Total days",val:days,icon:"🔥",color:"var(--gold)"},
+                {label:"Overcome",val:cravings.filter(c=>c.overcome).length,icon:"💚",color:"var(--green)"},
+              ].map((s,i)=>(
+                <Card key={i} style={{textAlign:"center",padding:"16px 10px"}}>
+                  <div style={{fontSize:20,marginBottom:4}}>{s.icon}</div>
+                  <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:26,color:s.color}}>{s.val}</div>
+                  <div style={{color:"var(--cream3)",fontSize:10,lineHeight:1.3}}>{s.label}</div>
+                </Card>
+              ))}
+            </div>
+
+            <button onClick={()=>setShowBreathing(true)} className="btn-press hover-lift" style={{
+              width:"100%",background:"linear-gradient(135deg,rgba(201,80,74,0.1),rgba(201,80,74,0.05))",
+              border:"1px solid rgba(201,80,74,0.3)",borderRadius:"var(--r)",padding:"18px 20px",
+              cursor:"pointer",display:"flex",alignItems:"center",gap:16,textAlign:"left"
+            }}>
+              <div style={{fontSize:32}}>🆘</div>
+              <div>
+                <div style={{color:"#e88a84",fontSize:14,fontWeight:600}}>I need help right now</div>
+                <div style={{color:"var(--cream3)",fontSize:12}}>Tap for guided breathing & grounding</div>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {tab==="cravings"&&(
+          <div style={{animation:"fadeUp 0.4s ease"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <div>
+                <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:24,fontWeight:400,color:"var(--cream)"}}>Craving Journal</h2>
+                <p style={{color:"var(--cream3)",fontSize:13,marginTop:2}}>{cravings.filter(c=>c.overcome).length} of {cravings.length} overcome</p>
+              </div>
+              <button onClick={()=>setShowCravingForm(true)} className="btn-press" style={{background:"var(--gold-dim)",border:"none",borderRadius:"50px",padding:"10px 20px",color:"var(--gold2)",cursor:"pointer",fontSize:13}}>+ Log</button>
+            </div>
+
+            {showCravingForm&&(
+              <Card style={{marginBottom:16,border:"1px solid var(--border)",animation:"scaleIn 0.3s ease"}}>
+                <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:16}}>New craving entry</p>
+                <div style={{marginBottom:14}}>
+                  <p style={{color:"var(--cream3)",fontSize:12,marginBottom:8}}>What triggered it?</p>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                    {TRIGGERS.map(t=>(
+                      <button key={t} onClick={()=>setNewCraving(p=>({...p,trigger:t}))} className="btn-press" style={{
+                        background:newCraving.trigger===t?"var(--gold-dim)":"var(--bg3)",
+                        border:`1px solid ${newCraving.trigger===t?"var(--gold)":"var(--border2)"}`,
+                        borderRadius:"50px",padding:"6px 14px",cursor:"pointer",
+                        color:newCraving.trigger===t?"var(--gold)":"var(--cream3)",fontSize:13,
+                      }}>{t}</button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{marginBottom:14}}>
+                  <p style={{color:"var(--cream3)",fontSize:12,marginBottom:8}}>Intensity: <span style={{color:"var(--cream)",fontWeight:600}}>{newCraving.intensity}/10</span></p>
+                  <input type="range" min="1" max="10" value={newCraving.intensity} onChange={e=>setNewCraving(p=>({...p,intensity:+e.target.value}))} style={{width:"100%"}}/>
+                </div>
+                <textarea value={newCraving.note} onChange={e=>setNewCraving(p=>({...p,note:e.target.value}))}
+                  placeholder="How are you coping right now? What will you do instead?"
+                  rows={2}
+                  style={{width:"100%",background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"var(--r-xs)",padding:"12px",color:"var(--cream)",fontSize:13,resize:"none",outline:"none",marginBottom:12,fontFamily:"'DM Sans',sans-serif"}}/>
+                <div style={{background:"rgba(74,157,122,0.08)",border:"1px solid rgba(74,157,122,0.2)",borderRadius:"var(--r-xs)",padding:"12px",marginBottom:14}}>
+                  <p style={{color:"var(--green2)",fontSize:13,margin:0}}>💚 Right now: breathe in for 4, hold for 4, out for 6. The wave will pass in under 20 minutes.</p>
+                </div>
+                <div style={{display:"flex",gap:10}}>
+                  <button onClick={()=>setShowCravingForm(false)} style={{flex:1,background:"none",border:"1px solid var(--border2)",borderRadius:"50px",padding:"12px",color:"var(--cream3)",cursor:"pointer",fontSize:13}}>Cancel</button>
+                  <button onClick={submitCraving} disabled={!newCraving.trigger} className="btn-press" style={{flex:2,background:newCraving.trigger?"var(--green-dim)":"var(--bg3)",border:"none",borderRadius:"50px",padding:"12px",color:newCraving.trigger?"var(--green2)":"var(--cream3)",cursor:newCraving.trigger?"pointer":"not-allowed",fontSize:13,fontWeight:600}}>Save entry</button>
+                </div>
+              </Card>
+            )}
+
+            {cravings.map(c=>(
+              <Card key={c.id} style={{marginBottom:12,opacity:c.overcome?0.7:1,transition:"opacity 0.3s"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:c.intensity>7?"var(--red)":c.intensity>4?"#e8a84c":"var(--green)",flexShrink:0}}/>
+                    <span style={{color:"var(--cream)",fontSize:14,fontWeight:500}}>{c.trigger}</span>
+                    {c.overcome&&<span style={{background:"rgba(74,157,122,0.15)",color:"var(--green2)",fontSize:10,padding:"2px 8px",borderRadius:"50px",border:"1px solid rgba(74,157,122,0.3)"}}>Overcome</span>}
+                  </div>
+                  <span style={{color:"var(--cream3)",fontSize:11}}>{fmtDate(c.ts)}, {fmtTime(c.ts)}</span>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:c.note?10:0}}>
+                  <div style={{flex:1,background:"var(--bg3)",borderRadius:"50px",height:5}}>
+                    <div style={{width:`${c.intensity*10}%`,background:c.intensity>7?"var(--red)":c.intensity>4?"#e8a84c":"var(--green)",borderRadius:"50px",height:"100%",transition:"width 0.6s"}}/>
+                  </div>
+                  <span style={{color:"var(--cream3)",fontSize:11,fontWeight:600,width:32,textAlign:"right"}}>{c.intensity}/10</span>
+                </div>
+                {c.note&&<p style={{color:"var(--cream3)",fontSize:13,fontStyle:"italic",marginBottom:10}}>"{c.note}"</p>}
+                {!c.overcome&&(
+                  <button onClick={()=>markOvercome(c.id)} className="btn-press" style={{background:"none",border:"1px solid var(--green-dim)",borderRadius:"50px",padding:"6px 16px",color:"var(--green2)",cursor:"pointer",fontSize:12,marginTop:4}}>✓ Mark as overcome</button>
+                )}
+              </Card>
+            ))}
+            {cravings.length===0&&<div style={{textAlign:"center",padding:"48px 0",color:"var(--cream3)"}}>
+              <div style={{fontSize:48,marginBottom:12,opacity:0.4}}>🌊</div>
+              <p style={{fontFamily:"'Cormorant Garamond',serif",fontStyle:"italic",fontSize:18}}>No cravings logged yet</p>
+            </div>}
+          </div>
+        )}
+
+        {tab==="journal"&&(
+          <div style={{animation:"fadeUp 0.4s ease"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:24,fontWeight:400,color:"var(--cream)"}}>Your Journal</h2>
+              <button onClick={()=>setShowJournalForm(true)} className="btn-press" style={{background:"var(--gold-dim)",border:"none",borderRadius:"50px",padding:"10px 20px",color:"var(--gold2)",cursor:"pointer",fontSize:13}}>+ Write</button>
+            </div>
+            {showJournalForm&&(
+              <Card style={{marginBottom:16,border:"1px solid var(--border)",animation:"scaleIn 0.3s ease"}}>
+                <p style={{color:"var(--gold)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.15em",marginBottom:12}}>New entry</p>
+                <textarea value={newJournal} onChange={e=>setNewJournal(e.target.value)}
+                  placeholder="Write anything. This is yours alone…"
+                  rows={5}
+                  style={{width:"100%",background:"var(--bg3)",border:"1px solid var(--border2)",borderRadius:"var(--r-xs)",padding:"14px",color:"var(--cream)",fontSize:15,resize:"none",outline:"none",lineHeight:1.8,fontFamily:"'Cormorant Garamond',serif",fontStyle:"italic",marginBottom:14}}/>
+                <div style={{display:"flex",gap:10}}>
+                  <button onClick={()=>setShowJournalForm(false)} style={{flex:1,background:"none",border:"1px solid var(--border2)",borderRadius:"50px",padding:"12px",color:"var(--cream3)",cursor:"pointer",fontSize:13}}>Cancel</button>
+                  <button onClick={submitJournal} disabled={!newJournal.trim()} className="btn-press" style={{flex:2,background:newJournal.trim()?"var(--gold-dim)":"var(--bg3)",border:"none",borderRadius:"50px",padding:"12px",color:newJournal.trim()?"var(--gold2)":"var(--cream3)",cursor:newJournal.trim()?"pointer":"not-allowed",fontSize:13,fontWeight:600}}>Save entry</button>
+                </div>
+              </Card>
+            )}
+            {journal.map(j=>(
+              <Card key={j.id} style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
+                  <span style={{color:"var(--cream3)",fontSize:12}}>{fmtDate(j.ts)}</span>
+                  {j.mood!==null&&j.mood!==undefined&&<span style={{fontSize:16}}>{MOODS[j.mood]?.emoji}</span>}
+                </div>
+                <GoldDivider/>
+                <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontStyle:"italic",color:"var(--cream)",lineHeight:1.8,marginTop:12}}>{j.text}</p>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {tab==="messages"&&(
+          <div style={{animation:"fadeUp 0.4s ease"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:24,fontWeight:400,color:"var(--cream)"}}>From your people</h2>
+              {messages.length>0&&<button onClick={onClearMessages} className="btn-press" style={{background:"none",border:"1px solid var(--border2)",borderRadius:"50px",padding:"6px 14px",color:"var(--cream3)",cursor:"pointer",fontSize:11}}>Clear received</button>}
+            </div>
+            <p style={{color:"var(--cream3)",fontSize:13,marginBottom:20}}>{allMessages.length} messages · {newMsgCount>0?<span style={{color:"var(--gold)"}}>{newMsgCount} just arrived</span>:"all caught up"}</p>
+            {allMessages.map(m=>(
+              <Card key={m.id} style={{marginBottom:14}}>
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+                  <div style={{width:44,height:44,borderRadius:"50%",background:m.color||"var(--gold-dim)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Cormorant Garamond',serif",fontSize:20,color:"var(--bg)",fontWeight:600,flexShrink:0}}>{m.initials||m.from[0]}</div>
+                  <div style={{flex:1}}>
+                    <div style={{color:"var(--cream)",fontWeight:600,fontSize:15}}>{m.from}</div>
+                    <div style={{color:"var(--cream3)",fontSize:11,marginTop:2}}>{fmtDate(m.ts)} · {fmtTime(m.ts)}{m.hasAudio?` · 🎙 ${m.duration}`:""}</div>
+                  </div>
+                  {m.ts>Date.now()-86400000&&<span style={{background:"rgba(201,168,76,0.15)",color:"var(--gold)",fontSize:10,padding:"3px 8px",borderRadius:"50px",border:"1px solid var(--border)"}}>New</span>}
+                  {!m.isFixed&&onDeleteMessage&&(
+                    <button
+                      onClick={()=>onDeleteMessage(m.id)}
+                      title="Remove message"
+                      style={{
+                        background:"none",border:"1px solid rgba(201,80,74,0.25)",
+                        borderRadius:"50%",width:28,height:28,cursor:"pointer",
+                        color:"rgba(201,80,74,0.6)",fontSize:14,flexShrink:0,
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        transition:"all 0.15s",lineHeight:1,
+                      }}
+                      onMouseEnter={e=>{e.currentTarget.style.background="rgba(201,80,74,0.12)";e.currentTarget.style.color="var(--red)";e.currentTarget.style.borderColor="var(--red)";}}
+                      onMouseLeave={e=>{e.currentTarget.style.background="none";e.currentTarget.style.color="rgba(201,80,74,0.6)";e.currentTarget.style.borderColor="rgba(201,80,74,0.25)";}}
+                    >✕</button>
+                  )}
+                </div>
+                {m.isNudge?(
+                  <div style={{textAlign:"center",padding:"12px 0",fontSize:32}}>{m.text}</div>
+                ):(
+                  <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:16,fontStyle:"italic",color:"var(--cream)",lineHeight:1.8,marginBottom:m.hasAudio?14:0}}>"{m.text}"</p>
+                )}
+                {m.hasAudio&&m.audioUrl&&(
+                  <audio src={m.audioUrl} controls style={{width:"100%",marginTop:4,filter:"invert(1) hue-rotate(180deg) brightness(0.7)"}}/>
+                )}
+                {m.hasAudio&&!m.audioUrl&&(
+                  <button onClick={()=>setPlayingId(p=>p===m.id?null:m.id)} className="btn-press" style={{
+                    display:"flex",alignItems:"center",gap:10,width:"100%",
+                    background:playingId===m.id?"var(--gold-dim)":"var(--bg3)",
+                    border:`1px solid ${playingId===m.id?"var(--gold)":"var(--border2)"}`,
+                    borderRadius:"50px",padding:"10px 18px",cursor:"pointer",
+                  }}>
+                    <span style={{fontSize:16}}>{playingId===m.id?"⏸":"▶"}</span>
+                    <span style={{color:playingId===m.id?"var(--gold)":"var(--cream3)",fontSize:13}}>{playingId===m.id?`Playing · ${m.duration}`:`Play voice memo · ${m.duration}`}</span>
+                  </button>
+                )}
+              </Card>
+            ))}
+            <Card style={{textAlign:"center",border:"1px solid var(--border)",background:"var(--bg3)"}}>
+              <p style={{color:"var(--cream3)",fontSize:13,marginBottom:12}}>Share your supporter code</p>
+              <div style={{fontFamily:"monospace",fontSize:22,color:"var(--gold)",letterSpacing:"0.3em",fontWeight:700,padding:"12px",background:"var(--bg)",borderRadius:"var(--r-xs)",display:"inline-block"}}>CLRP-7423</div>
+              <p style={{color:"var(--cream3)",fontSize:11,marginTop:10,opacity:0.6}}>Supporters enter this code to send you messages</p>
+            </Card>
+          </div>
+        )}
+
         {tab==="insights"&&(
           <InsightsTab
             days={days} cravings={cravings} journal={journal}
@@ -1129,7 +1133,9 @@ function CompanionModal({ onClose, days, cravings, journal, messages, mood, grat
       )}
     </div>
   );
-}    = "clearpath:messages:CLRP-7423";
+}
+
+const STORAGE_KEY_MSGS    = "clearpath:messages:CLRP-7423";
 const STORAGE_KEY_PROFILE = "clearpath:profile:CLRP-7423";
 const bc = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("clearpath") : null;
 
@@ -1137,19 +1143,16 @@ function readSharedMessages(){
   try{ return JSON.parse(localStorage.getItem(STORAGE_KEY_MSGS)||"[]"); }
   catch{ return []; }
 }
-
 function writeSharedMessages(msgs){
   try{
     localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(msgs));
     bc && bc.postMessage({type:"messages", data:msgs});
   }catch{}
 }
-
 function readProfile(){
   try{ return JSON.parse(localStorage.getItem(STORAGE_KEY_PROFILE)||"null"); }
   catch{ return null; }
 }
-
 function writeProfile(p){
   try{
     localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(p));
@@ -1173,7 +1176,7 @@ export default function App(){
   const [role,setRole]=useState(null);
   const [messages,setMessages]=useState(()=>readSharedMessages());
   const [profile,setProfile]=useState(()=>readProfile()||{days:23,cravingsOvercome:3,supporters:3});
-  const [synced,setSynced]=useState(true);
+  const [synced] = useState(true);
 
   useEffect(()=>{
     if(!bc) return;
@@ -1211,6 +1214,7 @@ export default function App(){
   function clearMessages(){ setMessages([]); writeSharedMessages([]); }
 
   return (
+    <ClearPathDemo>
     <div style={{background:"var(--bg)",minHeight:"100vh",maxWidth:430,margin:"0 auto",position:"relative"}}>
       <style>{CSS}</style>
       <Orbs/>
@@ -1233,5 +1237,6 @@ export default function App(){
         />
       )}
     </div>
+    </ClearPathDemo>
   );
 }
